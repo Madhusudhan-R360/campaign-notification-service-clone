@@ -10,3 +10,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(
 db = client[
     settings.database_name
 ]
+
+notification_templates_collection = db[
+    "notification_templates"
+]
