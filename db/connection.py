@@ -14,3 +14,7 @@ db = client[
 notification_templates_collection = db[
     "notification_templates"
 ]
+
+notifications_collection = db[
+    "notifications"
+]
