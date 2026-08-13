@@ -1,56 +1,91 @@
-from fastapi import APIRouter
+from fastapi import (
+    APIRouter,
+    BackgroundTasks
+)
 
 from api.notifications.schema import (
     NotificationSchema
+)
+
+from services.notification_processor import (
+    process_notification
 )
 
 from api.notifications import utility
 
 router = APIRouter()
 
-@router.post(
-    "/notifications/send-otp"
-)
+@router.post("/notifications/send-otp")
 async def send_otp(
-    data: NotificationSchema
+    data: NotificationSchema,
+    background_tasks: BackgroundTasks
 ):
-
-    return await utility.create_notification(
+    response = await utility.create_notification(
         data.model_dump()
     )
 
-@router.post(
-    "/notifications/campaign"
-)
+    background_tasks.add_task(
+        process_notification,
+        response["log_id"],
+        data.recipient,
+        data.channel
+    )
+
+    return response
+
+@router.post("/notifications/campaign")
 async def campaign_notification(
-    data: NotificationSchema
+    data: NotificationSchema,
+    background_tasks: BackgroundTasks
 ):
-
-    return await utility.create_notification(
+    response = await utility.create_notification(
         data.model_dump()
     )
 
-@router.post(
-    "/notifications/order"
-)
+    background_tasks.add_task(
+        process_notification,
+        response["log_id"],
+        data.recipient,
+        data.channel
+    )
+
+    return response
+
+@router.post("/notifications/order")
 async def order_notification(
-    data: NotificationSchema
+    data: NotificationSchema,
+    background_tasks: BackgroundTasks
 ):
-
-    return await utility.create_notification(
+    response = await utility.create_notification(
         data.model_dump()
     )
 
-@router.post(
-    "/notifications/reminder"
-)
+    background_tasks.add_task(
+        process_notification,
+        response["log_id"],
+        data.recipient,
+        data.channel
+    )
+
+    return response
+
+@router.post("/notifications/reminder")
 async def reminder_notification(
-    data: NotificationSchema
+    data: NotificationSchema,
+    background_tasks: BackgroundTasks
 ):
-
-    return await utility.create_notification(
+    response = await utility.create_notification(
         data.model_dump()
     )
+
+    background_tasks.add_task(
+        process_notification,
+        response["log_id"],
+        data.recipient,
+        data.channel
+    )
+
+    return response
 
 @router.get("/notifications")
 async def get_notifications():
