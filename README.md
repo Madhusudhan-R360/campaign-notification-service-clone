@@ -2,7 +2,17 @@
 
 A simplified clone of an enterprise Campaign Notification Service built using FastAPI and MongoDB.
 
-This project is designed to replicate the core architecture and workflows of a production notification service used to manage communication events, notification templates, delivery tracking, and notification auditing.
+This project recreates the core architecture of a production notification platform responsible for managing communication templates, notification requests, delivery processing, and communication tracking.
+
+The implementation focuses on learning modern backend concepts such as:
+
+- FastAPI
+- MongoDB
+- Background Tasks
+- Notification Workflows
+- Communication Tracking
+- Service-Oriented Architecture
+- Audit Logging
 
 ---
 
@@ -12,44 +22,44 @@ The service currently supports:
 
 - Notification Template Management
 - Notification Creation
+- Notification Retrieval
 - Communication Tracking
-- Notification Status Updates
-- HTTP Basic Authentication
-- MongoDB Persistence
-
-Future phases will introduce:
-
+- Communication Status Updates
 - Background Processing
 - Mock Email Delivery
 - Mock SMS Delivery
-- Docker Support
-- Automated Testing
+- HTTP Basic Authentication
+- MongoDB Persistence
 
 ---
 
 # Architecture
 
 ```text
-Client
-    |
-    v
-FastAPI
-    |
-    +-------- Template Module
-    |
-    +-------- Notification Module
-    |
-    +-------- Communication Tracking Module
-    |
-    +-------- Authentication Module
-    |
-    v
-MongoDB
+                        Client
+                           |
+                           v
+                      FastAPI API
+                           |
+       ------------------------------------------------
+       |                    |                        |
+       v                    v                        v
+
+Notification        Communication         Background Task
+Templates              Logs                 Processor
+       |                    |                        |
+       ------------------------------------------------
+                           |
+                           v
+                      MongoDB
+                           |
+                           v
+               Mock Email / SMS Services
 ```
 
 ---
 
-# Business Flow
+# Notification Lifecycle
 
 ```text
 Notification Request
@@ -58,13 +68,20 @@ Notification Request
 Create Notification
         |
         v
-Store Notification
-        |
-        v
 Create Communication Log
         |
         v
-Track Status
+Background Task Started
+        |
+        +------ Email Service
+        |
+        +------ SMS Service
+        |
+        v
+Update Communication Status
+        |
+        v
+Completed / Failed
 ```
 
 ---
@@ -74,16 +91,8 @@ Track Status
 ```text
 campaign-notification-service-clone/
 
-├── main.py
-│
-├── db/
-│   ├── config.py
-│   └── connection.py
-│
-├── security/
-│   └── auth.py
-│
 ├── api/
+│   │
 │   ├── templates/
 │   │   ├── app.py
 │   │   ├── schema.py
@@ -99,8 +108,21 @@ campaign-notification-service-clone/
 │       ├── schema.py
 │       └── utility.py
 │
+├── db/
+│   ├── config.py
+│   └── connection.py
+│
+├── security/
+│   └── auth.py
+│
+├── services/
+│   ├── email_service.py
+│   ├── sms_service.py
+│   └── notification_processor.py
+│
 ├── tests/
 │
+├── main.py
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
@@ -118,14 +140,15 @@ campaign-notification-service-clone/
 - Pydantic
 - Uvicorn
 - HTTP Basic Authentication
+- FastAPI Background Tasks
 
 ---
 
-# MongoDB Collections
+# Database Collections
 
 ## notification_templates
 
-Stores reusable notification templates.
+Stores reusable communication templates.
 
 Example:
 
@@ -161,16 +184,16 @@ Example:
 
 ## communication_logs
 
-Stores communication audit records.
+Stores communication tracking records.
 
 Example:
 
 ```json
 {
-  "notification_id": "689cf12345",
+  "notification_id": "689cf123",
   "channel": "email",
   "notification_type": "otp",
-  "status": "pending"
+  "status": "completed"
 }
 ```
 
@@ -257,9 +280,9 @@ http://localhost:8000/docs
 
 # Authentication
 
-The service uses HTTP Basic Authentication similar to the production notification service.
+The service uses HTTP Basic Authentication.
 
-Example:
+Example Credentials:
 
 ```text
 Username: admin
@@ -432,20 +455,6 @@ GET /notifications/{notification_id}
 GET /communication-logs
 ```
 
-Response Example:
-
-```json
-[
-  {
-    "_id": "689cf123456",
-    "notification_id": "689cf123455",
-    "channel": "email",
-    "notification_type": "otp",
-    "status": "pending"
-  }
-]
-```
-
 ---
 
 ## Get Communication Log By ID
@@ -470,7 +479,7 @@ Request:
 }
 ```
 
-Allowed Status Values:
+Allowed values:
 
 ```text
 pending
@@ -479,53 +488,119 @@ completed
 failed
 ```
 
-Response:
-
-```json
-{
-  "success": true,
-  "message": "Status updated"
-}
-```
-
 ---
 
-# Communication Lifecycle
+# Background Processing
+
+Phase 5 introduces asynchronous notification processing using FastAPI BackgroundTasks.
+
+Whenever a notification is created:
 
 ```text
-Notification Request
-        |
-        v
 Notification Created
         |
         v
 Communication Log Created
         |
         v
-Status Updated
+Background Task Triggered
+        |
+        +------ Email Delivery
+        |
+        +------ SMS Delivery
         |
         v
-Audit Trail Maintained
+Communication Status Updated
 ```
 
 ---
 
-# MongoDB Verification
+# Mock Email Service
 
-## notification_templates
+File:
 
-```json
-{
-  "_id": "...",
-  "template_name": "otp_notification",
-  "subject": "OTP Verification",
-  "content": "Hello {{name}}, your OTP is {{otp}}."
-}
+```text
+services/email_service.py
+```
+
+Output:
+
+```text
+EMAIL SENT TO: john@gmail.com
 ```
 
 ---
 
-## notifications
+# Mock SMS Service
+
+File:
+
+```text
+services/sms_service.py
+```
+
+Output:
+
+```text
+SMS SENT TO: 9876543210
+```
+
+---
+
+# Communication Status Lifecycle
+
+### Initial Status
+
+```text
+pending
+```
+
+### During Processing
+
+```text
+processing
+```
+
+### Successful Delivery
+
+```text
+completed
+```
+
+### Failed Delivery
+
+```text
+failed
+```
+
+---
+
+# Example Workflow
+
+```text
+POST /notifications/send-otp
+            |
+            v
+Notification Created
+            |
+            v
+Communication Log Created
+            |
+            v
+Background Task Runs
+            |
+            v
+EMAIL SENT TO: john@gmail.com
+            |
+            v
+Status Updated To Completed
+```
+
+---
+
+# MongoDB Sample Documents
+
+## Notification
 
 ```json
 {
@@ -533,13 +608,16 @@ Audit Trail Maintained
   "recipient": "john@gmail.com",
   "channel": "email",
   "notification_type": "otp",
+  "payload": {
+    "otp": "123456"
+  },
   "status": "pending"
 }
 ```
 
 ---
 
-## communication_logs
+## Communication Log
 
 ```json
 {
@@ -549,26 +627,6 @@ Audit Trail Maintained
   "notification_type": "otp",
   "status": "completed"
 }
-```
-
----
-
-# Completed Phases
-
-```text
-✅ Phase 1 - Foundation Setup
-
-✅ Phase 2 - Template Management Module
-
-✅ Phase 3 - Notification Module
-
-✅ Phase 4 - Communication Tracking Module
-
-⬜ Phase 5 - Background Processing & Mock Delivery
-
-⬜ Phase 6 - Dockerization
-
-⬜ Phase 7 - Automated Testing
 ```
 
 ---
@@ -591,47 +649,41 @@ Audit Trail Maintained
 
 ✅ Notification Retrieval APIs
 
-✅ Communication Log Creation
+✅ Communication Tracking
 
-✅ Communication Audit Tracking
+✅ Communication Log Retrieval
 
 ✅ Communication Status Updates
+
+✅ Background Processing
+
+✅ Mock Email Delivery
+
+✅ Mock SMS Delivery
+
+✅ Notification Processor
 
 ✅ Swagger Documentation
 
 ---
 
-# Upcoming Enhancements
+# Project Progress
 
-## Phase 5
+```text
+✅ Phase 1 - Foundation Setup
 
-Background Processing & Mock Delivery
+✅ Phase 2 - Template Management Module
 
-- Background Tasks
-- Mock Email Delivery
-- Mock SMS Delivery
-- Automatic Status Updates
+✅ Phase 3 - Notification Module
 
----
+✅ Phase 4 - Communication Tracking Module
 
-## Phase 6
+✅ Phase 5 - Background Processing & Mock Delivery Service
 
-Docker Support
+⬜ Phase 6 - Dockerization
 
-- Dockerfile
-- Docker Compose
-- Containerized Deployment
-
----
-
-## Phase 7
-
-Testing
-
-- Health API Tests
-- Template API Tests
-- Notification API Tests
-- Communication Log Tests
+⬜ Phase 7 - Automated Testing
+```
 
 ---
 
@@ -640,25 +692,30 @@ Testing
 This project demonstrates:
 
 - FastAPI Development
-- REST API Design
 - MongoDB CRUD Operations
+- REST API Design
+- HTTP Basic Authentication
+- Background Task Processing
 - Event-Driven Architecture
+- Notification Workflows
 - Communication Tracking
 - Audit Logging
-- Authentication
-- Service-Oriented Design
+- Service Layer Design
 
 ---
 
 # Final Outcome
 
-The Campaign Notification Service Clone models the communication layer of a rewards ecosystem.
+The Campaign Notification Service Clone simulates a real-world notification platform.
 
 ```text
-Campaign Event
+Business Event
         |
         v
 Notification Request
+        |
+        v
+Template Selection
         |
         v
 Notification Creation
@@ -667,10 +724,17 @@ Notification Creation
 Communication Tracking
         |
         v
-Status Management
+Background Processing
+        |
+        +------ Email
+        |
+        +------ SMS
+        |
+        v
+Status Update
         |
         v
 Audit Trail
 ```
 
-The project now provides a complete foundation for notification management and communication tracking, closely mirroring the core architecture of an enterprise notification service.
+The project now closely mirrors the workflow of
