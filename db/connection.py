@@ -18,3 +18,7 @@ notification_templates_collection = db[
 notifications_collection = db[
     "notifications"
 ]
+
+communication_logs_collection = db[
+    "communication_logs"
+]

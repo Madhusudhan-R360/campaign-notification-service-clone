@@ -15,6 +15,20 @@ async def create_notification(data):
         )
     )
 
+    from db.connection import (
+    communication_logs_collection
+)
+
+    await communication_logs_collection.insert_one(
+    {
+        "notification_id": str(
+        result.inserted_id
+        ),
+        "channel": data["channel"],
+        "notification_type": data["notification_type"],
+        "status": "pending"
+    }
+)
     return {
         "success": True,
         "notification_id": str(

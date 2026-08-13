@@ -12,12 +12,20 @@ from api.templates.app import (
     router as templates_router
 )
 
+from api.communication_logs.app import (
+    router as communication_router
+)
+
 app.include_router(
     templates_router
 )
 
 app.include_router(
     notification_router
+)
+
+app.include_router(
+    communication_router
 )
 
 @app.get("/health")
