@@ -1,41 +1,41 @@
 from bson import ObjectId
 
 from db.connection import (
-    notifications_collection
+    notifications_collection, communication_logs_collection
 )
-
 
 async def create_notification(data):
 
     data["status"] = "pending"
 
-    result = await (
-        notifications_collection.insert_one(
-            data
+    result = await notifications_collection.insert_one(
+        data
+    )
+
+    log_result = await (
+        communication_logs_collection.insert_one(
+            {
+                "notification_id": str(
+                    result.inserted_id
+                ),
+                "channel": data["channel"],
+                "notification_type": data[
+                    "notification_type"
+                ],
+                "status": "pending"
+            }
         )
     )
 
-    from db.connection import (
-    communication_logs_collection
-)
-
-    await communication_logs_collection.insert_one(
-    {
-        "notification_id": str(
-        result.inserted_id
-        ),
-        "channel": data["channel"],
-        "notification_type": data["notification_type"],
-        "status": "pending"
-    }
-)
     return {
         "success": True,
         "notification_id": str(
             result.inserted_id
+        ),
+        "log_id": str(
+            log_result.inserted_id
         )
     }
-
 
 async def get_notifications():
 
