@@ -1,49 +1,11 @@
-# Virtual Environment
-venv/
-.venv/
+# Docker
+mongo_data/
+docker-data/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Environment Variables
+# Environment
 .env
 
-# Logs
-logs/
-*.log
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# IDE
-.vscode/
-.idea/
-
-# OS Files
-.DS_Store
-Thumbs.db
-
-# Build
-build/
-dist/
-*.egg-info/
-
-# MongoDB Dumps
-dump/
-
-# Uploaded Files
-uploads/
-
-# Generated Reports
-reports/
-
-# Git
-.git
-
-# Docker
-docker-data/
+# Python
+venv/
+__pycache__/
+*.pyc
